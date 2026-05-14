@@ -373,8 +373,8 @@ export default function Home() {
               ].map(r => (
                 <tr key={r.team} onClick={() => showNotification('🏆 Abriendo perfil de ' + r.team)}
                   style={{ cursor: 'pointer' }}
-                  onMouseEnter={e => Array.from((e.currentTarget as HTMLElement).cells).forEach(c => (c as HTMLElement).style.background = 'rgba(255,255,255,0.02)')}
-                  onMouseLeave={e => Array.from((e.currentTarget as HTMLElement).cells).forEach(c => (c as HTMLElement).style.background = 'transparent')}>
+                  onMouseEnter={e => Array.from((e.currentTarget as HTMLTableRowElement).cells).forEach(c => (c as HTMLElement).style.background = 'rgba(255,255,255,0.02)')}
+                  onMouseLeave={e => Array.from((e.currentTarget as HTMLTableRowElement).cells).forEach(c => (c as HTMLElement).style.background = 'transparent')}>
                   <td style={{ padding: '8px 10px', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
                     <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '14px', fontWeight: 900, color: r.nc }}>{r.n}</span>
                   </td>
