@@ -1,5 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { supabase, signInWithEmail, signUpWithEmail } from '../lib/supabase'
+import { gameImages, cloudinaryUrl } from '../lib/cloudinary'
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState('DOTA 2')
@@ -8,6 +10,13 @@ export default function Home() {
   const [notif, setNotif] = useState('')
   const [showNotif, setShowNotif] = useState(false)
   const [heroIdx, setHeroIdx] = useState(0)
+  const [gamesDB, setGamesDB] = useState<any[]>([])
+
+  useEffect(() => {
+    supabase.from('games').select('*').then(({ data }) => {
+      if (data) setGamesDB(data)
+    })
+  }, [])
 
   function showNotification(msg: string) {
     setNotif(msg)
@@ -27,7 +36,7 @@ export default function Home() {
     { name: 'VALORANT', icon: '🎯', players: '75K', color: '#FF4655', live: false },
     { name: 'Fortnite', icon: '🏗', players: '64K', color: '#00D4FF', live: false },
     { name: 'Free Fire', icon: '📱', players: '64K', color: '#FFB800', live: true },
-  ]
+  ].map(g => ({ ...g, img: gameImages[g.name] || '' }))
 
   const navGames = ['DOTA 2','LoL','CS2','VALORANT','FORTNITE','FREE FIRE','ESPORTS','NOTICIAS','STREAMING','PODCASTS','CREADORES','EVENTOS','TIENDA']
 
@@ -231,15 +240,25 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: '8px', marginBottom: '14px' }}>
             {games.map(g => (
               <div key={g.name} onClick={() => showNotification('🎮 Abriendo ' + g.name)}
-                style={{ ...s.card, padding: '10px 8px', textAlign: 'center', position: 'relative' }}
+                style={{ ...s.card, padding: '0', textAlign: 'center', position: 'relative', overflow: 'hidden' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#FF2020'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}>
-                {g.live && <span style={{ position: 'absolute', top: '5px', right: '5px', fontSize: '7px', fontFamily: 'Orbitron, sans-serif', fontWeight: 700, padding: '1px 5px', borderRadius: '2px', background: '#FF2020', color: '#fff' }}>EN VIVO</span>}
-                <div style={{ fontSize: '24px', marginBottom: '5px' }}>{g.icon}</div>
-                <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '11px', fontWeight: 700, marginBottom: '2px', lineHeight: 1.1 }}>{g.name}</div>
-                <div style={{ fontSize: '9px', color: '#3A4568', fontFamily: 'Orbitron, sans-serif' }}>{g.players}</div>
-                <div style={{ fontSize: '8px', fontFamily: 'Orbitron, sans-serif', padding: '1px 6px', borderRadius: '2px', marginTop: '4px', display: 'inline-block', background: g.live ? 'rgba(255,32,32,0.15)' : 'rgba(0,207,255,0.1)', color: g.live ? '#FF4444' : '#00CFFF' }}>
-                  {g.live ? 'EN VIVO' : 'PRÓXIMO'}
+                {g.live && <span style={{ position: 'absolute', top: '5px', right: '5px', zIndex: 2, fontSize: '7px', fontFamily: 'Orbitron, sans-serif', fontWeight: 700, padding: '1px 5px', borderRadius: '2px', background: '#FF2020', color: '#fff' }}>EN VIVO</span>}
+                {g.img ? (
+                  <div style={{ width: '100%', height: '60px', overflow: 'hidden', position: 'relative' }}>
+                    <img src={g.img} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent, ${g.color}22)` }}></div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '24px', padding: '14px 0 5px' }}>{g.icon}</div>
+                )}
+                <div style={{ padding: '6px 4px 8px' }}>
+                  <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '11px', fontWeight: 700, marginBottom: '2px', lineHeight: 1.1 }}>{g.name}</div>
+                  <div style={{ fontSize: '9px', color: '#3A4568', fontFamily: 'Orbitron, sans-serif' }}>{g.players}</div>
+                  <div style={{ fontSize: '8px', fontFamily: 'Orbitron, sans-serif', padding: '1px 6px', borderRadius: '2px', marginTop: '4px', display: 'inline-block', background: g.live ? 'rgba(255,32,32,0.15)' : 'rgba(0,207,255,0.1)', color: g.live ? '#FF4444' : '#00CFFF' }}>
+                    {g.live ? 'EN VIVO' : 'PRÓXIMO'}
+                  </div>
                 </div>
               </div>
             ))}
