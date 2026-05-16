@@ -162,7 +162,14 @@ export default function Home() {
               style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 14px', cursor: 'pointer', borderLeft: '3px solid transparent', transition: 'all 0.18s' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-              <div style={{ width: '28px', height: '28px', borderRadius: '6px', background: g.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>{g.icon}</div>
+              <div style={{ width: '28px', height: '28px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: g.color }}>
+  {gameImages[g.name] ? (
+    <img src={gameImages[g.name]} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+  ) : (
+    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{g.icon}</div>
+  )}
+</div>
               <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '13px', fontWeight: 600, flex: 1 }}>{g.name}</div>
               {g.live ? <span style={{ fontSize: '8px', fontFamily: 'Orbitron, sans-serif', padding: '1px 5px', borderRadius: '3px', background: 'rgba(255,32,32,0.2)', color: '#FF4444' }}>VIVO</span>
                 : <span style={{ fontSize: '10px', color: '#3A4568', fontFamily: 'Orbitron, sans-serif' }}>{(g as any).num}</span>}

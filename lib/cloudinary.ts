@@ -7,7 +7,7 @@ export const gameImages: { [key: string]: string } = {
 'Free Fire': 'https://res.cloudinary.com/dtdhxaumd/image/upload/q_auto/f_auto/v1778951959/free_fire_rzxabe.jpg',
   'PUBG Mobile': 'https://cdn.cloudflare.steamstatic.com/steam/apps/578080/header.jpg',
   'Call of Duty': 'https://cdn.cloudflare.steamstatic.com/steam/apps/1938090/header.jpg',
-  'Mobile Legends': 'https://play-lh.googleusercontent.com/J8A3s5j1QSHUdMHGMXJJc3rHxpBi-VRTiwXPg4YovLaRHAO9Ei31bvjCOXt1BWBF0Ko=w526-h296-rw',
+  'Mobile Legends': 'https://res.cloudinary.com/dtdhxaumd/image/upload/q_auto/f_auto/v1778974661/Mobile_Legends_Bang_Bang_rytudu.webp',
 }
 
 export const eventImages: { [key: string]: string } = {
