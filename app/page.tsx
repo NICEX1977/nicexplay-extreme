@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState('DOTA 2')
@@ -9,13 +8,7 @@ export default function Home() {
   const [notif, setNotif] = useState('')
   const [showNotif, setShowNotif] = useState(false)
   const [heroIdx, setHeroIdx] = useState(0)
-const [gamesDB, setGamesDB] = useState<any[]>([])
 
-useEffect(() => {
-  supabase.from('games').select('*').then(({ data }) => {
-    if (data) setGamesDB(data)
-  })
-}, [])
   function showNotification(msg: string) {
     setNotif(msg)
     setShowNotif(true)
@@ -94,9 +87,9 @@ useEffect(() => {
             <span onClick={() => setModalOpen(false)} style={{ position: 'absolute', top: '12px', right: '14px', cursor: 'pointer', fontSize: '18px', color: '#3A4568' }}>✕</span>
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '16px', fontWeight: 700, textAlign: 'center', marginBottom: '6px' }}>{modalMode === 'login' ? 'INICIAR SESIÓN' : 'CREAR CUENTA'}</div>
             <div style={{ fontSize: '12px', color: '#7A8AB8', textAlign: 'center', marginBottom: '20px' }}>{modalMode === 'login' ? 'Accede a tu cuenta NICEXPLAY' : 'Únete a la comunidad NICEXPLAY'}</div>
-            <input placeholder="Correo electrónico" style={{ width: '100%', background: '#1a2235', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '10px 12px', fontSize: '13px', color: '#F0F4FF', outline: 'none', marginBottom: '10px', boxSizing: 'border-box' }} />
-            <input type="password" placeholder="Contraseña" style={{ width: '100%', background: '#1a2235', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '10px 12px', fontSize: '13px', color: '#F0F4FF', outline: 'none', marginBottom: '10px', boxSizing: 'border-box' }} />
-            <button onClick={() => { showNotification(modalMode === 'login' ? '✅ Iniciando sesión...' : '🎉 ¡Bienvenido a NICEXPLAY!'); setTimeout(() => setModalOpen(false), 1200) }}
+            <input className="modal-email" placeholder="Correo electrónico" style={{ width: '100%', background: '#1a2235', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '10px 12px', fontSize: '13px', color: '#F0F4FF', outline: 'none', marginBottom: '10px', boxSizing: 'border-box' }} />
+            <input className="modal-pass" type="password" placeholder="Contraseña" style={{ width: '100%', background: '#1a2235', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '10px 12px', fontSize: '13px', color: '#F0F4FF', outline: 'none', marginBottom: '10px', boxSizing: 'border-box' }} />
+            <button onClick={async () => { const emailEl = document.querySelector('.modal-email') as HTMLInputElement; const passEl = document.querySelector('.modal-pass') as HTMLInputElement; if (!emailEl?.value || !passEl?.value) { showNotification('⚠️ Ingresa tu email y contraseña'); return; } if (modalMode === 'login') { const { error } = await signInWithEmail(emailEl.value, passEl.value); if (error) { showNotification('❌ ' + error.message); return; } showNotification('✅ ¡Sesión iniciada!'); } else { const { error } = await signUpWithEmail(emailEl.value, passEl.value); if (error) { showNotification('❌ ' + error.message); return; } showNotification('🎉 ¡Cuenta creada! Revisa tu email.'); } setTimeout(() => setModalOpen(false), 1500); }}
               style={{ width: '100%', padding: '11px', background: '#FF2020', color: '#fff', border: 'none', borderRadius: '6px', fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer', marginBottom: '8px' }}>
               {modalMode === 'login' ? 'ENTRAR' : 'CREAR CUENTA GRATIS'}
             </button>

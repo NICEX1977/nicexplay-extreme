@@ -8,8 +8,33 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     headers: {
       Authorization: `Bearer ${supabaseAnonKey}`
     }
+  },
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
   }
 })
+
+export async function signUpWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  return { data, error }
+}
+
+export async function signInWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  return { data, error }
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut()
+  return { error }
+}
+
+export async function getSession() {
+  const { data: { session } } = await supabase.auth.getSession()
+  return session
+}
 
 export type Game = {
   id: string
@@ -32,27 +57,4 @@ export type Article = {
   tags: string[]
   views: number
   created_at: string
-}
-
-export type Event = {
-  id: string
-  name: string
-  description: string | null
-  banner_url: string | null
-  prize_pool: string | null
-  start_date: string
-  end_date: string
-  status: 'live' | 'upcoming' | 'completed'
-  stream_url: string | null
-}
-
-export type Match = {
-  id: string
-  team1_name: string
-  team1_score: number
-  team2_name: string
-  team2_score: number
-  status: 'live' | 'upcoming' | 'completed'
-  map_name: string | null
-  stream_url: string | null
 }
