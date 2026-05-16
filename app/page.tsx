@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState('DOTA 2')
@@ -8,7 +9,13 @@ export default function Home() {
   const [notif, setNotif] = useState('')
   const [showNotif, setShowNotif] = useState(false)
   const [heroIdx, setHeroIdx] = useState(0)
+const [gamesDB, setGamesDB] = useState<any[]>([])
 
+useEffect(() => {
+  supabase.from('games').select('*').then(({ data }) => {
+    if (data) setGamesDB(data)
+  })
+}, [])
   function showNotification(msg: string) {
     setNotif(msg)
     setShowNotif(true)
