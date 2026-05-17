@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase, signInWithEmail, signUpWithEmail } from '../lib/supabase'
-import { gameImages, cloudinaryUrl } from '../lib/cloudinary'
+import { gameImages, cloudinaryUrl, teamLogos, eventLogos, newsImages } from '../lib/cloudinary'
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState('DOTA 2')
@@ -308,7 +308,12 @@ export default function Home() {
                 style={{ ...s.card, padding: '14px', display: 'flex', gap: '12px' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,32,32,0.3)'; (e.currentTarget as HTMLElement).style.background = '#1a2235' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111827' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: n.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>{n.icon}</div>
+                <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: n.color }}>
+  {newsImages[n.tag]
+    ? <img src={newsImages[n.tag]} alt={n.tag} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{n.icon}</div>
+  }
+</div>
                 <div>
                   <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '2px', color: n.tagColor, marginBottom: '4px' }}>{n.tag}</div>
                   <div style={{ fontSize: '13px', fontWeight: 500, lineHeight: 1.3, marginBottom: '4px' }}>{n.title}</div>
@@ -329,7 +334,9 @@ export default function Home() {
                 style={{ ...s.card, padding: '10px', flexShrink: 0, width: '100px', textAlign: 'center' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#00CFFF'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', margin: '0 auto 6px', background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', border: '2px solid rgba(255,255,255,0.06)' }}>{c.icon}</div>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', margin: '0 auto 6px', background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: '#fff', border: '2px solid rgba(255,255,255,0.15)' }}>
+  {c.name.substring(0,2).toUpperCase()}
+</div>
                 <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '11px', fontWeight: 600, marginBottom: '2px' }}>{c.name}</div>
                 <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', color: '#3A4568', letterSpacing: '1px' }}>{c.game}</div>
                 {c.live
@@ -360,7 +367,7 @@ export default function Home() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,207,255,0.3)'; (e.currentTarget as HTMLElement).style.background = '#1a2235' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111827' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(255,32,32,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>{p.icon}</div>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: `rgba(255,32,32,0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, border: '0.5px solid rgba(255,32,32,0.3)' }}>{p.icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '2px', color: p.epColor, marginBottom: '2px' }}>{p.ep}</div>
                   </div>
@@ -445,12 +452,18 @@ export default function Home() {
                 <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '2px', color: '#3A4568', marginBottom: '6px' }}>{m.game}</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', background: `rgba(${m.t1c},0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t1c, flexShrink: 0 }}>{m.t1}</div>
+                   <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: '#1a2235' }}>
+  {teamLogos[m.t1n] ? <img src={teamLogos[m.t1n]} alt={m.t1n} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> 
+  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t1c }}>{m.t1}</div>}
+</div>
                     <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '13px', fontWeight: 700 }}>{m.t1n}</span>
                   </div>
                   <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '15px', fontWeight: 900 }}>{m.score}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexDirection: 'row-reverse' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', background: `rgba(${m.t2c},0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t2c, flexShrink: 0 }}>{m.t2}</div>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: '#1a2235' }}>
+  {teamLogos[m.t2n] ? <img src={teamLogos[m.t2n]} alt={m.t2n} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> 
+  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t2c }}>{m.t2}</div>}
+</div>
                     <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '13px', fontWeight: 700 }}>{m.t2n}</span>
                   </div>
                 </div>
@@ -476,7 +489,12 @@ export default function Home() {
             ].map(e => (
               <div key={e.name} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '7px 0', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', color: '#3A4568', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '2px' }}>{e.time}</div>
-                <div style={{ fontSize: '16px', flexShrink: 0 }}>{e.icon}</div>
+                <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0 }}>
+  {eventLogos[e.name] 
+    ? <img src={eventLogos[e.name]} alt={e.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    : <div style={{ fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{e.icon}</div>
+  }
+</div>
                 <div>
                   <div style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.2, marginBottom: '2px' }}>{e.name}</div>
                   <div style={{ fontSize: '10px', color: '#3A4568' }}>{e.meta}</div>
