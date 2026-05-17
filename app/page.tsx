@@ -11,6 +11,8 @@ export default function Home() {
   const [showNotif, setShowNotif] = useState(false)
   const [heroIdx, setHeroIdx] = useState(0)
   const [gamesDB, setGamesDB] = useState<any[]>([])
+  const [podcastIA, setPodcastIA] = useState('')
+  const [generando, setGenerando] = useState(false)
 
   useEffect(() => {
     supabase.from('games').select('*').then(({ data }) => {
@@ -22,6 +24,18 @@ export default function Home() {
     setNotif(msg)
     setShowNotif(true)
     setTimeout(() => setShowNotif(false), 2800)
+  }
+
+  async function generarPodcastIA() {
+    setGenerando(true)
+    try {
+      const res = await fetch('/api/groq', { method: 'GET' })
+      const data = await res.json()
+      if (data.success) setPodcastIA(data.contenido)
+    } catch (e) {
+      showNotification('❌ Error generando podcast')
+    }
+    setGenerando(false)
   }
 
   useEffect(() => {
@@ -62,7 +76,6 @@ export default function Home() {
     body: { minHeight: '100vh', background: '#0B0F1A', color: '#F0F4FF', fontFamily: 'Inter, sans-serif', overflowX: 'hidden' },
     nav: { position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200, height: '60px', background: 'rgba(11,15,26,0.95)', backdropFilter: 'blur(16px)', borderBottom: '0.5px solid rgba(255,32,32,0.2)', display: 'flex', alignItems: 'center', gap: '0', padding: '0 16px' },
     logoWrap: { display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none', flexShrink: 0, marginRight: '16px' },
-    logoIcon: { width: '36px', height: '36px', flexShrink: 0 },
     logoText: { fontFamily: 'Orbitron, sans-serif', fontWeight: 900, fontSize: '16px', letterSpacing: '1px', lineHeight: 1 },
     logoSub: { fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '3px', color: 'rgba(255,255,255,0.3)', display: 'block', marginTop: '2px' },
     navGames: { display: 'flex', gap: '2px', flex: 1, overflow: 'hidden' },
@@ -81,14 +94,12 @@ export default function Home() {
 
   return (
     <div style={s.body}>
-      {/* NOTIF */}
       {showNotif && (
         <div style={{ position: 'fixed', top: '70px', right: '16px', zIndex: 400, background: '#111827', border: '0.5px solid #FF2020', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', boxShadow: '0 4px 20px rgba(255,32,32,0.3)', maxWidth: '300px' }}>
           {notif}
         </div>
       )}
 
-      {/* MODAL */}
       {modalOpen && (
         <div onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false) }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -114,7 +125,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* NAV */}
       <nav style={s.nav}>
         <div style={s.logoWrap}>
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
@@ -141,10 +151,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* MAIN GRID */}
       <div style={s.main}>
-
-        {/* SIDEBAR LEFT */}
         <aside style={s.sideL}>
           <div style={{ padding: '8px 14px 4px', fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '3px', color: '#3A4568' }}>JUEGOS PRINCIPALES</div>
           {[
@@ -163,13 +170,13 @@ export default function Home() {
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
               <div style={{ width: '28px', height: '28px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: g.color }}>
-  {gameImages[g.name] ? (
-    <img src={gameImages[g.name]} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-  ) : (
-    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{g.icon}</div>
-  )}
-</div>
+                {gameImages[g.name] ? (
+                  <img src={gameImages[g.name]} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>{g.icon}</div>
+                )}
+              </div>
               <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '13px', fontWeight: 600, flex: 1 }}>{g.name}</div>
               {g.live ? <span style={{ fontSize: '8px', fontFamily: 'Orbitron, sans-serif', padding: '1px 5px', borderRadius: '3px', background: 'rgba(255,32,32,0.2)', color: '#FF4444' }}>VIVO</span>
                 : <span style={{ fontSize: '10px', color: '#3A4568', fontFamily: 'Orbitron, sans-serif' }}>{(g as any).num}</span>}
@@ -189,10 +196,7 @@ export default function Home() {
           </div>
         </aside>
 
-        {/* CENTER */}
         <main style={s.content}>
-
-          {/* TICKER */}
           <div style={{ background: 'rgba(255,32,32,0.06)', border: '0.5px solid rgba(255,32,32,0.15)', borderRadius: '6px', padding: '8px 0', marginBottom: '14px', overflow: 'hidden', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', fontWeight: 900, letterSpacing: '2px', color: '#FF2020', padding: '0 14px', whiteSpace: 'nowrap', flexShrink: 0 }}>⚡ LIVE</span>
             <div style={{ display: 'flex', gap: '32px', animation: 'tick 30s linear infinite', whiteSpace: 'nowrap' }}>
@@ -205,7 +209,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* HERO */}
           <div onClick={() => showNotification('🎮 Abriendo cobertura DreamLeague S29...')}
             style={{ borderRadius: '10px', overflow: 'hidden', position: 'relative', marginBottom: '14px', height: '300px', cursor: 'pointer', background: 'linear-gradient(135deg,#1a0a0a 0%,#2d0808 30%,#0a1a2d 70%,#060e1a 100%)' }}>
             <div style={{ position: 'absolute', top: '20%', left: '30%', width: '300px', height: '200px', background: 'radial-gradient(ellipse,rgba(255,32,32,0.3) 0%,transparent 70%)', pointerEvents: 'none' }}></div>
@@ -239,7 +242,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* JUEGOS */}
           <div style={s.secHdr}>
             <div style={s.secTitle}><span style={{ width: '3px', height: '14px', borderRadius: '2px', background: '#FF2020', display: 'inline-block', boxShadow: '0 0 8px #FF2020' }}></span>JUEGOS PRINCIPALES</div>
             <span onClick={() => showNotification('🎮 Cargando todos los juegos...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', cursor: 'pointer' }}>VER TODOS →</span>
@@ -271,7 +273,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* FEATURES */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '8px', marginBottom: '14px' }}>
             {[
               { icon: '📊', title: 'RANKINGS IA', sub: 'Los mejores jugadores actualizados por IA', color: '#00CFFF', action: 'VER RANKINGS' },
@@ -292,7 +293,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* NOTICIAS */}
           <div style={s.secHdr}>
             <div style={s.secTitle}><span style={{ width: '3px', height: '14px', borderRadius: '2px', background: '#FF2020', display: 'inline-block', boxShadow: '0 0 8px #FF2020' }}></span>NOTICIAS DESTACADAS</div>
             <span onClick={() => showNotification('📰 Cargando noticias...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', cursor: 'pointer' }}>VER TODAS →</span>
@@ -309,11 +309,11 @@ export default function Home() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,32,32,0.3)'; (e.currentTarget as HTMLElement).style.background = '#1a2235' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111827' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: n.color }}>
-  {newsImages[n.tag]
-    ? <img src={newsImages[n.tag]} alt={n.tag} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{n.icon}</div>
-  }
-</div>
+                  {newsImages[n.tag]
+                    ? <img src={newsImages[n.tag]} alt={n.tag} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>{n.icon}</div>
+                  }
+                </div>
                 <div>
                   <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '2px', color: n.tagColor, marginBottom: '4px' }}>{n.tag}</div>
                   <div style={{ fontSize: '13px', fontWeight: 500, lineHeight: 1.3, marginBottom: '4px' }}>{n.title}</div>
@@ -323,7 +323,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* CREADORES */}
           <div style={s.secHdr}>
             <div style={s.secTitle}><span style={{ width: '3px', height: '14px', borderRadius: '2px', background: '#FF2020', display: 'inline-block', boxShadow: '0 0 8px #FF2020' }}></span>CREADORES DESTACADOS</div>
             <span onClick={() => showNotification('⭐ Ver directorio de creadores...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', cursor: 'pointer' }}>VER TODOS →</span>
@@ -335,8 +334,8 @@ export default function Home() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#00CFFF'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '50%', margin: '0 auto 6px', background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: '#fff', border: '2px solid rgba(255,255,255,0.15)' }}>
-  {c.name.substring(0,2).toUpperCase()}
-</div>
+                  {c.name.substring(0,2).toUpperCase()}
+                </div>
                 <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '11px', fontWeight: 600, marginBottom: '2px' }}>{c.name}</div>
                 <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', color: '#3A4568', letterSpacing: '1px' }}>{c.game}</div>
                 {c.live
@@ -352,10 +351,28 @@ export default function Home() {
             </div>
           </div>
 
-          {/* PODCASTS */}
           <div style={s.secHdr}>
             <div style={s.secTitle}><span style={{ width: '3px', height: '14px', borderRadius: '2px', background: '#FF2020', display: 'inline-block', boxShadow: '0 0 8px #FF2020' }}></span>PODCASTS DIARIOS</div>
             <span onClick={() => showNotification('🎙 Cargando podcasts...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', cursor: 'pointer' }}>VER TODOS →</span>
+          </div>
+          <div style={{ background: 'linear-gradient(135deg,rgba(191,95,255,0.1),rgba(255,32,32,0.08))', borderRadius: '8px', padding: '14px', marginBottom: '12px', border: '0.5px solid rgba(191,95,255,0.3)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, color: '#BF5FFF' }}>🤖 GENERADOR DE PODCAST IA</div>
+              <button onClick={generarPodcastIA} disabled={generando}
+                style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', fontWeight: 700, letterSpacing: '2px', padding: '6px 14px', background: generando ? '#3A4568' : '#BF5FFF', color: '#fff', border: 'none', borderRadius: '4px', cursor: generando ? 'not-allowed' : 'pointer' }}>
+                {generando ? 'GENERANDO...' : '⚡ GENERAR AHORA'}
+              </button>
+            </div>
+            {podcastIA && (
+              <div style={{ fontSize: '12px', color: '#F0F4FF', lineHeight: 1.7, background: '#0d1525', borderRadius: '6px', padding: '12px', maxHeight: '150px', overflowY: 'auto' as 'auto' }}>
+                {podcastIA}
+              </div>
+            )}
+            {!podcastIA && !generando && (
+              <div style={{ fontSize: '11px', color: '#3A4568', textAlign: 'center', padding: '10px' }}>
+                Clic en "GENERAR AHORA" para crear un podcast con IA en tiempo real
+              </div>
+            )}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px', marginBottom: '14px' }}>
             {[
@@ -367,7 +384,7 @@ export default function Home() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,207,255,0.3)'; (e.currentTarget as HTMLElement).style.background = '#1a2235' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111827' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: `rgba(255,32,32,0.15)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, border: '0.5px solid rgba(255,32,32,0.3)' }}>{p.icon}</div>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '6px', background: 'rgba(255,32,32,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0, border: '0.5px solid rgba(255,32,32,0.3)' }}>{p.icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '2px', color: p.epColor, marginBottom: '2px' }}>{p.ep}</div>
                   </div>
@@ -383,7 +400,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* RANKING TABLE */}
           <div style={s.secHdr}>
             <div style={s.secTitle}><span style={{ width: '3px', height: '14px', borderRadius: '2px', background: '#FF2020', display: 'inline-block', boxShadow: '0 0 8px #FF2020' }}></span>RANKING ESPORTS MUNDIAL</div>
             <span onClick={() => showNotification('📊 Cargando ranking...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', cursor: 'pointer' }}>VER COMPLETO →</span>
@@ -428,13 +444,9 @@ export default function Home() {
               ))}
             </tbody>
           </table>
-
         </main>
 
-        {/* SIDEBAR RIGHT */}
         <aside style={s.sideR}>
-
-          {/* LIVE MATCHES */}
           <div style={{ background: '#1a2235', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(255,32,32,0.2)' }}>
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#FF4444', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#FF2020', display: 'inline-block' }}></span>
@@ -452,18 +464,18 @@ export default function Home() {
                 <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '8px', letterSpacing: '2px', color: '#3A4568', marginBottom: '6px' }}>{m.game}</div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                   <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: '#1a2235' }}>
-  {teamLogos[m.t1n] ? <img src={teamLogos[m.t1n]} alt={m.t1n} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> 
-  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t1c }}>{m.t1}</div>}
-</div>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: '#1a2235' }}>
+                      {teamLogos[m.t1n] ? <img src={teamLogos[m.t1n]} alt={m.t1n} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t1c }}>{m.t1}</div>}
+                    </div>
                     <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '13px', fontWeight: 700 }}>{m.t1n}</span>
                   </div>
                   <span style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '15px', fontWeight: 900 }}>{m.score}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexDirection: 'row-reverse' }}>
                     <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, background: '#1a2235' }}>
-  {teamLogos[m.t2n] ? <img src={teamLogos[m.t2n]} alt={m.t2n} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> 
-  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t2c }}>{m.t2}</div>}
-</div>
+                      {teamLogos[m.t2n] ? <img src={teamLogos[m.t2n]} alt={m.t2n} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, fontFamily: 'Orbitron, sans-serif', color: m.t2c }}>{m.t2}</div>}
+                    </div>
                     <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '13px', fontWeight: 700 }}>{m.t2n}</span>
                   </div>
                 </div>
@@ -477,7 +489,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* EVENTOS */}
           <div style={{ background: '#1a2235', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(0,207,255,0.15)' }}>
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', marginBottom: '10px' }}>📅 PRÓXIMOS EVENTOS</div>
             {[
@@ -490,11 +501,11 @@ export default function Home() {
               <div key={e.name} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', padding: '7px 0', borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}>
                 <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', color: '#3A4568', whiteSpace: 'nowrap', flexShrink: 0, marginTop: '2px' }}>{e.time}</div>
                 <div style={{ width: '24px', height: '24px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0 }}>
-  {eventLogos[e.name] 
-    ? <img src={eventLogos[e.name]} alt={e.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-    : <div style={{ fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{e.icon}</div>
-  }
-</div>
+                  {eventLogos[e.name]
+                    ? <img src={eventLogos[e.name]} alt={e.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>{e.icon}</div>
+                  }
+                </div>
                 <div>
                   <div style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.2, marginBottom: '2px' }}>{e.name}</div>
                   <div style={{ fontSize: '10px', color: '#3A4568' }}>{e.meta}</div>
@@ -508,7 +519,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* PREMIUM */}
           <div style={{ background: 'linear-gradient(135deg,rgba(191,95,255,0.1),rgba(255,32,32,0.08))', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(191,95,255,0.3)' }}>
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, color: '#BF5FFF', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>👑 NICEXPLAY PREMIUM</div>
             <div style={{ fontSize: '11px', color: '#7A8AB8', lineHeight: 2 }}>
@@ -520,7 +530,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* NEWSLETTER */}
           <div style={{ background: 'linear-gradient(135deg,rgba(255,32,32,0.08),rgba(0,207,255,0.05))', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(255,32,32,0.2)' }}>
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>📧 SUSCRÍBETE</div>
             <div style={{ fontSize: '11px', color: '#7A8AB8', marginBottom: '10px', lineHeight: 1.4 }}>Recibe noticias, torneos y novedades cada semana</div>
@@ -530,11 +539,9 @@ export default function Home() {
               SUSCRIBIRME →
             </button>
           </div>
-
         </aside>
       </div>
 
-      {/* FOOTER */}
       <div style={s.footer}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div>
