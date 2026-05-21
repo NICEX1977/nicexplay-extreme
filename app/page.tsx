@@ -27,16 +27,26 @@ export default function Home() {
   }
 
   async function generarPodcastIA() {
-    setGenerando(true)
-    try {
-      const res = await fetch('/api/groq', { method: 'GET' })
-      const data = await res.json()
-      if (data.success) setPodcastIA(data.contenido)
-    } catch (e) {
-      showNotification('❌ Error generando podcast')
+  setGenerando(true)
+  try {
+    const res = await fetch('/api/groq', { method: 'GET' })
+    const data = await res.json()
+    if (data.success) {
+      setPodcastIA(data.contenido)
+      // Generar audio
+      const audioRes = await fetch('/api/podcast', { method: 'GET' })
+      if (audioRes.ok) {
+        const blob = await audioRes.blob()
+        const url = URL.createObjectURL(blob)
+        const audio = new Audio(url)
+        audio.play()
+      }
     }
-    setGenerando(false)
+  } catch (e) {
+    showNotification('❌ Error generando podcast')
   }
+  setGenerando(false)
+}
 
   useEffect(() => {
     const t = setInterval(() => setHeroIdx(i => (i + 1) % 4), 4000)
