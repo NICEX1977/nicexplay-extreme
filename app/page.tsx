@@ -13,13 +13,23 @@ export default function Home() {
   const [gamesDB, setGamesDB] = useState<any[]>([])
   const [podcastIA, setPodcastIA] = useState('')
   const [generando, setGenerando] = useState(false)
-
+const [tendencias, setTendencias] = useState<any[]>([])
+const [noticiaIA, setNoticiaIA] = useState('')
   useEffect(() => {
     supabase.from('games').select('*').then(({ data }) => {
       if (data) setGamesDB(data)
     })
   }, [])
-
+useEffect(() => {
+  fetch('/api/tendencias')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        setTendencias(data.tendencias)
+        setNoticiaIA(data.noticiaIA)
+      }
+    })
+}, [])
   function showNotification(msg: string) {
     setNotif(msg)
     setShowNotif(true)
@@ -80,6 +90,7 @@ export default function Home() {
     { color: '#00FF9C', text: 'Free Fire World Series LatAm · 14–21 Jun 2026' },
     { color: '#BF5FFF', text: 'Nuevo parche DOTA 2 · 7.36c · Cambios importantes en héroes' },
     { color: '#FF2020', text: 'The International 2026 · Shanghai · 13–23 Agosto · $1.6M' },
+    ...tendencias.map(t => ({ color: '#00FF9C', text: `🔥 ${t.juego} · ${t.viewers?.toLocaleString()} espectadores en Twitch ahora` }))
   ]
 
   const s: { [key: string]: React.CSSProperties } = {
