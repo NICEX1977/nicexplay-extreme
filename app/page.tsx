@@ -555,7 +555,20 @@ useEffect(() => {
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>📧 SUSCRÍBETE</div>
             <div style={{ fontSize: '11px', color: '#7A8AB8', marginBottom: '10px', lineHeight: 1.4 }}>Recibe noticias, torneos y novedades cada semana</div>
             <input placeholder="tu@correo.com" style={{ width: '100%', background: '#0d1525', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '4px', padding: '8px 10px', fontSize: '12px', color: '#F0F4FF', outline: 'none', marginBottom: '6px', boxSizing: 'border-box' }} />
-            <button onClick={() => showNotification('✅ ¡Suscripción confirmada!')}
+            <button onClick={async () => {
+  showNotification('⏳ Cargando checkout...')
+  try {
+    const res = await fetch('/api/pagos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: 'basic', email: 'usuario@nicexplay.lat' })
+    })
+    const data = await res.json()
+    if (data.success) window.open(data.sandboxInitPoint, '_blank')
+  } catch (e) {
+    showNotification('❌ Error cargando checkout')
+  }
+}}
               style={{ width: '100%', background: '#FF2020', color: '#fff', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer' }}>
               SUSCRIBIRME →
             </button>
