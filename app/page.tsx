@@ -394,7 +394,7 @@ export default function Home() {
                   : <div style={{ fontSize: '9px', color: '#3A4568', fontFamily: 'Orbitron, sans-serif', marginTop: '4px' }}>OFFLINE</div>}
               </div>
             ))}
-            <div onClick={() => { setModalMode('register'); setModalOpen(true) }}
+            <div onClick={() => router.push('/solicitud')}
               style={{ ...s.card, padding: '10px', flexShrink: 0, width: '100px', textAlign: 'center', cursor: 'pointer' }}>
               <div style={{ width: '44px', height: '44px', borderRadius: '50%', margin: '0 auto 6px', background: 'rgba(255,32,32,0.1)', border: '2px solid rgba(255,32,32,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>➕</div>
               <div style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '11px', fontWeight: 600, color: '#FF4444', marginBottom: '2px' }}>SER CREADOR</div>
@@ -571,38 +571,20 @@ export default function Home() {
           </div>
 
           <div style={{ background: 'linear-gradient(135deg,rgba(191,95,255,0.1),rgba(255,32,32,0.08))', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(191,95,255,0.3)' }}>
-            <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, color: '#BF5FFF', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>👑 NICEXPLAY PREMIUM</div>
-            <div style={{ fontSize: '11px', color: '#7A8AB8', lineHeight: 2 }}>
-              <div>✦ Contenido exclusivo</div><div>✦ Sin anuncios</div><div>✦ Recompensas mensuales</div><div>✦ Acceso anticipado</div>
-            </div>
-            <button onClick={async () => {
-              showNotification('⏳ Cargando checkout...')
-              try {
-                const res = await fetch('/api/pagos', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ plan: 'basic', email: 'usuario@nicexplay.lat' })
-                })
-                const data = await res.json()
-                if (data.success) window.open(data.sandboxInitPoint, '_blank')
-              } catch (e) {
-                showNotification('❌ Error cargando checkout')
-              }
-            }}
-              style={{ width: '100%', background: 'linear-gradient(90deg,#BF5FFF,#FF2020)', color: '#fff', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer', marginTop: '8px' }}>
-              OBTENER PREMIUM
-            </button>
+            <div style={{ background: 'linear-gradient(135deg,rgba(255,184,0,0.1),rgba(255,32,32,0.08))', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(255,184,0,0.3)' }}>
+  <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, color: '#FFB800', marginBottom: '6px' }}>☕ APOYA NICEXPLAY</div>
+  <div style={{ fontSize: '11px', color: '#7A8AB8', lineHeight: 1.7, marginBottom: '10px' }}>
+    Si disfrutas el contenido, apóyanos con una donación y ayúdanos a crecer.
+  </div>
+  <button onClick={() => window.open('https://www.buymeacoffee.com', '_blank')}
+    style={{ width: '100%', background: '#FFB800', color: '#000', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer' }}>
+    ☕ DONAR AHORA
+  </button>
+</div>
+            
           </div>
 
-          <div style={{ background: 'linear-gradient(135deg,rgba(255,32,32,0.08),rgba(0,207,255,0.05))', borderRadius: '8px', padding: '12px', border: '0.5px solid rgba(255,32,32,0.2)' }}>
-            <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>📧 SUSCRÍBETE</div>
-            <div style={{ fontSize: '11px', color: '#7A8AB8', marginBottom: '10px', lineHeight: 1.4 }}>Recibe noticias, torneos y novedades cada semana</div>
-            <input placeholder="tu@correo.com" style={{ width: '100%', background: '#0d1525', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '4px', padding: '8px 10px', fontSize: '12px', color: '#F0F4FF', outline: 'none', marginBottom: '6px', boxSizing: 'border-box' }} />
-            <button onClick={() => showNotification('✅ ¡Suscripción confirmada!')}
-              style={{ width: '100%', background: '#FF2020', color: '#fff', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer' }}>
-              SUSCRIBIRME →
-            </button>
-          </div>
+          
         </aside>
       </div>
 
