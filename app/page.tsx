@@ -576,7 +576,7 @@ export default function Home() {
   <div style={{ fontSize: '11px', color: '#7A8AB8', lineHeight: 1.7, marginBottom: '10px' }}>
     Si disfrutas el contenido, apóyanos con una donación y ayúdanos a crecer.
   </div>
-  <button onClick={() => window.open('https://www.buymeacoffee.com', '_blank')}
+  <button onClick={() => window.open('https://www.paypal.com/ncp/payment/GQ32C5WCMZREL', '_blank')}
     style={{ width: '100%', background: '#FFB800', color: '#000', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer' }}>
     ☕ DONAR AHORA
   </button>
