@@ -1,4 +1,5 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { supabase, signInWithEmail, signUpWithEmail } from '../lib/supabase'
 import { gameImages, teamLogos, eventLogos, newsImages } from '../lib/cloudinary'
@@ -15,6 +16,7 @@ export default function Home() {
   const [generando, setGenerando] = useState(false)
   const [tendencias, setTendencias] = useState<any[]>([])
   const [articulos, setArticulos] = useState<any[]>([])
+  const router = useRouter()
 
   useEffect(() => {
     supabase.from('games').select('*').then(({ data }) => {
@@ -134,15 +136,16 @@ export default function Home() {
   }
 
   const noticiasFinal = articulos.length > 0
-    ? articulos.map((a: any) => ({
-        tag: a.games?.name || a.category?.toUpperCase() || 'GAMING',
-        tagColor: '#00CFFF',
-        color: 'rgba(0,207,255,0.08)',
-        icon: '📰',
-        title: a.title,
-        time: `${a.views?.toLocaleString()} VISTAS`
-      }))
-    : noticiasEstaticas
+  ? articulos.map((a: any) => ({
+      tag: a.games?.name || a.category?.toUpperCase() || 'GAMING',
+      tagColor: '#00CFFF',
+      color: 'rgba(0,207,255,0.08)',
+      icon: '📰',
+      title: a.title,
+      time: `${a.views?.toLocaleString()} VISTAS`,
+      slug: a.slug
+    }))
+  : noticiasEstaticas
     console.log('noticiasFinal:', noticiasFinal.length, articulos.length)
 
   return (
@@ -352,7 +355,7 @@ export default function Home() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
             {noticiasFinal.map((n: any) => (
-              <div key={n.title} onClick={() => showNotification('📰 Leyendo noticia...')}
+              <div key={n.title} onClick={() => (n as any).slug ? router.push('/articulo/' + (n as any).slug) : showNotification('📰 Leyendo noticia...')}
                 style={{ ...s.card, padding: '14px', display: 'flex', gap: '12px' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,32,32,0.3)'; (e.currentTarget as HTMLElement).style.background = '#1a2235' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.background = '#111827' }}>
