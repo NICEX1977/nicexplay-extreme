@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { supabase, signInWithEmail, signUpWithEmail } from '../lib/supabase'
-import { gameImages, cloudinaryUrl, teamLogos, eventLogos, newsImages } from '../lib/cloudinary'
+import { gameImages, teamLogos, eventLogos, newsImages } from '../lib/cloudinary'
 
 export default function Home() {
   const [activeGame, setActiveGame] = useState('DOTA 2')
@@ -13,23 +13,37 @@ export default function Home() {
   const [gamesDB, setGamesDB] = useState<any[]>([])
   const [podcastIA, setPodcastIA] = useState('')
   const [generando, setGenerando] = useState(false)
-const [tendencias, setTendencias] = useState<any[]>([])
-const [noticiaIA, setNoticiaIA] = useState('')
+  const [tendencias, setTendencias] = useState<any[]>([])
+  const [articulos, setArticulos] = useState<any[]>([])
+
   useEffect(() => {
     supabase.from('games').select('*').then(({ data }) => {
       if (data) setGamesDB(data)
     })
   }, [])
-useEffect(() => {
-  fetch('/api/tendencias')
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        setTendencias(data.tendencias)
-        setNoticiaIA(data.noticiaIA)
-      }
+
+  useEffect(() => {
+  supabase
+    .from('articles')
+    .select('*, games(name, color)')
+    .eq('is_published', true)
+    .order('views', { ascending: false })
+    .limit(4)
+    .then(({ data, error }) => {
+      console.log('Articulos data:', data)
+      console.log('Articulos error:', error)
+      if (data) setArticulos(data)
     })
 }, [])
+
+  useEffect(() => {
+    fetch('/api/tendencias')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setTendencias(data.tendencias)
+      })
+  }, [])
+
   function showNotification(msg: string) {
     setNotif(msg)
     setShowNotif(true)
@@ -37,26 +51,25 @@ useEffect(() => {
   }
 
   async function generarPodcastIA() {
-  setGenerando(true)
-  try {
-    const res = await fetch('/api/groq', { method: 'GET' })
-    const data = await res.json()
-    if (data.success) {
-      setPodcastIA(data.contenido)
-      // Generar audio
-      const audioRes = await fetch('/api/podcast', { method: 'GET' })
-      if (audioRes.ok) {
-        const blob = await audioRes.blob()
-        const url = URL.createObjectURL(blob)
-        const audio = new Audio(url)
-        audio.play()
+    setGenerando(true)
+    try {
+      const res = await fetch('/api/groq', { method: 'GET' })
+      const data = await res.json()
+      if (data.success) {
+        setPodcastIA(data.contenido)
+        const audioRes = await fetch('/api/podcast', { method: 'GET' })
+        if (audioRes.ok) {
+          const blob = await audioRes.blob()
+          const url = URL.createObjectURL(blob)
+          const audio = new Audio(url)
+          audio.play()
+        }
       }
+    } catch (e) {
+      showNotification('❌ Error generando podcast')
     }
-  } catch (e) {
-    showNotification('❌ Error generando podcast')
+    setGenerando(false)
   }
-  setGenerando(false)
-}
 
   useEffect(() => {
     const t = setInterval(() => setHeroIdx(i => (i + 1) % 4), 4000)
@@ -75,12 +88,12 @@ useEffect(() => {
   const navGames = ['DOTA 2','LoL','CS2','VALORANT','FORTNITE','FREE FIRE','ESPORTS','NOTICIAS','STREAMING','PODCASTS','CREADORES','EVENTOS','TIENDA']
 
   const creators = [
-    { name: 'Dark Mago', game: 'DOTA 2 🇵🇪', icon: '🎮', live: true, color: 'rgba(196,91,20,0.15)' },
-    { name: 'NiceXStreamer', game: 'VALORANT 🇵🇪', icon: '🎯', live: true, color: 'rgba(255,70,85,0.12)' },
-    { name: 'GamingLatam', game: 'CS2 🇦🇷', icon: '🔫', live: false, color: 'rgba(255,107,53,0.12)' },
-    { name: 'FreeFire_PE', game: 'FREE FIRE 🇵🇪', icon: '📱', live: true, color: 'rgba(255,184,0,0.12)' },
-    { name: 'LolMaster', game: 'LOL 🇨🇱', icon: '⚔', live: false, color: 'rgba(200,155,60,0.12)' },
-    { name: 'ProGamerGG', game: 'DOTA 2 🇧🇷', icon: '🏆', live: true, color: 'rgba(0,207,255,0.1)' },
+    { name: 'Dark Mago', game: 'DOTA 2 🇵🇪', live: true, color: 'rgba(196,91,20,0.15)' },
+    { name: 'NiceXStreamer', game: 'VALORANT 🇵🇪', live: true, color: 'rgba(255,70,85,0.12)' },
+    { name: 'GamingLatam', game: 'CS2 🇦🇷', live: false, color: 'rgba(255,107,53,0.12)' },
+    { name: 'FreeFire_PE', game: 'FREE FIRE 🇵🇪', live: true, color: 'rgba(255,184,0,0.12)' },
+    { name: 'LolMaster', game: 'LOL 🇨🇱', live: false, color: 'rgba(200,155,60,0.12)' },
+    { name: 'ProGamerGG', game: 'DOTA 2 🇧🇷', live: true, color: 'rgba(0,207,255,0.1)' },
   ]
 
   const tickers = [
@@ -91,6 +104,13 @@ useEffect(() => {
     { color: '#BF5FFF', text: 'Nuevo parche DOTA 2 · 7.36c · Cambios importantes en héroes' },
     { color: '#FF2020', text: 'The International 2026 · Shanghai · 13–23 Agosto · $1.6M' },
     ...tendencias.map(t => ({ color: '#00FF9C', text: `🔥 ${t.juego} · ${t.viewers?.toLocaleString()} espectadores en Twitch ahora` }))
+  ]
+
+  const noticiasEstaticas = [
+    { tag: 'VALORANT', tagColor: '#FF4655', color: 'rgba(255,70,85,0.12)', icon: '🎯', title: 'Nuevos agentes filtrados · Temporada 9 trae cambios masivos', time: 'HACE 1 HORA · 2 MIN' },
+    { tag: 'CS2', tagColor: '#FF6B35', color: 'rgba(255,107,53,0.12)', icon: '🔫', title: 'Actualización de mapas · Nuke renovado y Dust2 con cambios', time: 'HACE 3 HORAS · 3 MIN' },
+    { tag: 'DOTA 2', tagColor: '#C45B14', color: 'rgba(196,91,20,0.12)', icon: '⚔', title: 'Cambios importantes en héroes · Parche 7.36c y nuevo meta', time: 'HACE 5 HORAS · 4 MIN' },
+    { tag: 'FREE FIRE', tagColor: '#FFB800', color: 'rgba(255,184,0,0.12)', icon: '📱', title: 'Copa LATAM 2026 · Los mejores equipos peruanos buscan el cupo', time: 'HACE 6 HORAS · 3 MIN' },
   ]
 
   const s: { [key: string]: React.CSSProperties } = {
@@ -112,6 +132,18 @@ useEffect(() => {
     card: { background: '#111827', borderRadius: '8px', border: '0.5px solid rgba(255,255,255,0.06)', cursor: 'pointer', transition: 'all 0.2s' },
     footer: { background: '#111827', borderTop: '0.5px solid rgba(255,255,255,0.06)', padding: '24px', gridColumn: '1 / -1' },
   }
+
+  const noticiasFinal = articulos.length > 0
+    ? articulos.map((a: any) => ({
+        tag: a.games?.name || a.category?.toUpperCase() || 'GAMING',
+        tagColor: '#00CFFF',
+        color: 'rgba(0,207,255,0.08)',
+        icon: '📰',
+        title: a.title,
+        time: `${a.views?.toLocaleString()} VISTAS`
+      }))
+    : noticiasEstaticas
+    console.log('noticiasFinal:', noticiasFinal.length, articulos.length)
 
   return (
     <div style={s.body}>
@@ -319,12 +351,7 @@ useEffect(() => {
             <span onClick={() => showNotification('📰 Cargando noticias...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#00CFFF', cursor: 'pointer' }}>VER TODAS →</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '14px' }}>
-            {[
-              { icon: '🎯', color: 'rgba(255,70,85,0.12)', tag: 'VALORANT', tagColor: '#FF4655', title: 'Nuevos agentes filtrados · Temporada 9 trae cambios masivos', time: 'HACE 1 HORA · 2 MIN' },
-              { icon: '🔫', color: 'rgba(255,107,53,0.12)', tag: 'CS2', tagColor: '#FF6B35', title: 'Actualización de mapas · Nuke renovado y Dust2 con cambios', time: 'HACE 3 HORAS · 3 MIN' },
-              { icon: '⚔', color: 'rgba(196,91,20,0.12)', tag: 'DOTA 2', tagColor: '#C45B14', title: 'Cambios importantes en héroes · Parche 7.36c y nuevo meta', time: 'HACE 5 HORAS · 4 MIN' },
-              { icon: '📱', color: 'rgba(255,184,0,0.12)', tag: 'FREE FIRE', tagColor: '#FFB800', title: 'Copa LATAM 2026 · Los mejores equipos peruanos buscan el cupo', time: 'HACE 6 HORAS · 3 MIN' },
-            ].map(n => (
+            {noticiasFinal.map((n: any) => (
               <div key={n.title} onClick={() => showNotification('📰 Leyendo noticia...')}
                 style={{ ...s.card, padding: '14px', display: 'flex', gap: '12px' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,32,32,0.3)'; (e.currentTarget as HTMLElement).style.background = '#1a2235' }}
@@ -545,7 +572,20 @@ useEffect(() => {
             <div style={{ fontSize: '11px', color: '#7A8AB8', lineHeight: 2 }}>
               <div>✦ Contenido exclusivo</div><div>✦ Sin anuncios</div><div>✦ Recompensas mensuales</div><div>✦ Acceso anticipado</div>
             </div>
-            <button onClick={() => { setModalMode('register'); setModalOpen(true) }}
+            <button onClick={async () => {
+              showNotification('⏳ Cargando checkout...')
+              try {
+                const res = await fetch('/api/pagos', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ plan: 'basic', email: 'usuario@nicexplay.lat' })
+                })
+                const data = await res.json()
+                if (data.success) window.open(data.sandboxInitPoint, '_blank')
+              } catch (e) {
+                showNotification('❌ Error cargando checkout')
+              }
+            }}
               style={{ width: '100%', background: 'linear-gradient(90deg,#BF5FFF,#FF2020)', color: '#fff', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer', marginTop: '8px' }}>
               OBTENER PREMIUM
             </button>
@@ -555,20 +595,7 @@ useEffect(() => {
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '11px', fontWeight: 700, marginBottom: '4px' }}>📧 SUSCRÍBETE</div>
             <div style={{ fontSize: '11px', color: '#7A8AB8', marginBottom: '10px', lineHeight: 1.4 }}>Recibe noticias, torneos y novedades cada semana</div>
             <input placeholder="tu@correo.com" style={{ width: '100%', background: '#0d1525', border: '0.5px solid rgba(255,255,255,0.06)', borderRadius: '4px', padding: '8px 10px', fontSize: '12px', color: '#F0F4FF', outline: 'none', marginBottom: '6px', boxSizing: 'border-box' }} />
-            <button onClick={async () => {
-  showNotification('⏳ Cargando checkout...')
-  try {
-    const res = await fetch('/api/pagos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: 'basic', email: 'usuario@nicexplay.lat' })
-    })
-    const data = await res.json()
-    if (data.success) window.open(data.sandboxInitPoint, '_blank')
-  } catch (e) {
-    showNotification('❌ Error cargando checkout')
-  }
-}}
+            <button onClick={() => showNotification('✅ ¡Suscripción confirmada!')}
               style={{ width: '100%', background: '#FF2020', color: '#fff', border: 'none', borderRadius: '4px', padding: '9px', fontFamily: 'Orbitron, sans-serif', fontSize: '10px', fontWeight: 700, letterSpacing: '2px', cursor: 'pointer' }}>
               SUSCRIBIRME →
             </button>
