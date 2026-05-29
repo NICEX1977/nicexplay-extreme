@@ -597,10 +597,12 @@ export default function Home() {
             <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', color: '#3A4568', letterSpacing: '2px', marginTop: '4px' }}>TU UNIVERSO · TUS JUEGOS · TU COMUNIDAD</div>
           </div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            {['Gaming', 'eSports', 'Noticias', 'Streaming', 'Podcasts', 'Creadores', 'Eventos', 'Discord', 'Privacidad'].map(l => (
-              <span key={l} onClick={() => showNotification('Cargando ' + l + '...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#3A4568', cursor: 'pointer' }}>{l}</span>
-            ))}
-          </div>
+            {['Gaming', 'eSports', 'Noticias', 'Streaming', 'Podcasts', 'Creadores', 'Eventos', 'Discord'].map(l => (
+  <span key={l} onClick={() => showNotification('Cargando ' + l + '...')} style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#3A4568', cursor: 'pointer' }}>{l}</span>
+))}
+<a href="/privacidad" style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#3A4568', textDecoration: 'none' }}>Privacidad</a>
+            
+                      </div>
           <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '1px', color: '#3A4568' }}>© 2026 NICEXPLAY EXTREME</div>
         </div>
       </div>
