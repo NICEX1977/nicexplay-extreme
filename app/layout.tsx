@@ -23,6 +23,9 @@ export const metadata: Metadata = {
     description: "Tu plataforma gaming de Latinoamérica. Noticias, esports, podcasts con IA y torneos.",
     creator: "@nicexplay",
   },
+  verification: {
+  google: '2SxEAJILwfFVKdg0dA1fJXHFJV3r64PfsNJ509h6Yp4',
+},
   robots: {
     index: true,
     follow: true,
