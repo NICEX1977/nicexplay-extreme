@@ -34,6 +34,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://nicexplay.lat",
   },
+  verification: {
+  google: 'google9cac27171ea9bd00.html',
+},
+
 };
 
 export default function RootLayout({
