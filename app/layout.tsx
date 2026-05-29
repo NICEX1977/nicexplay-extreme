@@ -53,6 +53,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#FF2020" />
         <meta name="geo.region" content="PE" />
         <meta name="geo.country" content="Peru" />
+        <meta name="google-adsense-account" content="ca-pub-3697409870088969" />
       </head>
       <body style={{ margin: 0, padding: 0, background: '#0B0F1A' }}>
         {children}
