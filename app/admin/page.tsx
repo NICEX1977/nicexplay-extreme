@@ -107,7 +107,7 @@ export default function AdminPanel() {
         await new Promise((res, rej) => {
           img.onload = res
           img.onerror = rej
-          img.src = selectedArticle.cover_url
+          img.src = selectedArticle.cover_url + '?_=' + Date.now()
         })
         ctx.globalAlpha = 0.4
         ctx.drawImage(img, 0, 0, 1080, 1080)
