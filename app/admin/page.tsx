@@ -37,7 +37,39 @@ export default function AdminPanel() {
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('todos')
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
+  const [imagenUrl, setImagenUrl] = useState<string | null>(null)
+const [generando, setGenerando] = useState(false)
+
+  const generarImagen = async () => {
+    if (!selectedArticle) return
+    setGenerando(true)
+    try {
+      const res = await fetch('/api/generar-imagen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedArticle.title,
+          excerpt: selectedArticle.excerpt,
+          category: selectedArticle.category,
+          cover_url: selectedArticle.cover_url
+        })
+      })
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      setImagenUrl(url)
+    } catch (e) {
+      console.error('Error:', e)
+    }
+    setGenerando(false)
+  }
+
+  const descargarImagen = () => {
+    if (!imagenUrl) return
+    const link = document.createElement('a')
+    link.download = 'nicexplay-instagram.svg'
+    link.href = imagenUrl
+    link.click()
+  }
   
 
   useEffect(() => {
