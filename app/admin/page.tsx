@@ -126,19 +126,19 @@ const [imagenUrl, setImagenUrl] = useState<string | null>(null)
     if (!selectedArticle) return
     setGenerando(true)
     try {
-      const res = await fetch('/api/generar-imagen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: selectedArticle.title,
-          excerpt: selectedArticle.excerpt,
-          category: selectedArticle.category,
-          cover_url: selectedArticle.cover_url
-        })
+      const html2canvas = (await import('html2canvas')).default
+      const el = document.getElementById('instagram-preview')
+      if (!el) return
+      const canvas = await html2canvas(el, { 
+        width: 1080, 
+        height: 1080, 
+        scale: 1,
+        useCORS: true,
+        allowTaint: true
       })
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      setImagenUrl(url)
+      const url = canvas.toDataURL('image/png')
+console.log('URL generada:', url.slice(0, 50))
+setImagenUrl(url)
     } catch (e) {
       console.error('Error:', e)
     }
@@ -148,7 +148,7 @@ const [imagenUrl, setImagenUrl] = useState<string | null>(null)
   const descargarImagen = () => {
     if (!imagenUrl) return
     const link = document.createElement('a')
-    link.download = `nicexplay-instagram.svg`
+    link.download = 'nicexplay-instagram.png'
     link.href = imagenUrl
     link.click()
   }
@@ -266,13 +266,53 @@ const [imagenUrl, setImagenUrl] = useState<string | null>(null)
 
           <div>
             <h2 className="text-xl font-bold mb-4">Vista previa</h2>
-       {imagenUrl ? (
-  <img 
-    src={imagenUrl} 
-    alt="Preview Instagram" 
-    style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151', background: '#111' }} 
-    onError={(e) => console.error('Error cargando imagen:', e)}
-    onLoad={() => console.log('Imagen cargada OK')}
+       {/* Preview oculto para capturar */}
+<div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+  <div
+    id="instagram-preview"
+    style={{
+      width: '1080px',
+      height: '1080px',
+      background: '#0a0a0a',
+      position: 'relative',
+      overflow: 'hidden',
+      fontFamily: 'Arial, sans-serif'
+    }}
+  >
+    {selectedArticle?.cover_url && (
+      <img
+        src={selectedArticle.cover_url}
+        crossOrigin="anonymous"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
+        alt=""
+      />
+    )}
+    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.85) 50%, rgba(10,10,10,1) 100%)' }} />
+    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: '#a855f7' }} />
+    <div style={{ position: 'absolute', bottom: '280px', left: '60px', right: '60px' }}>
+      <p style={{ color: '#a855f7', fontSize: '30px', fontWeight: 'bold', margin: '0 0 10px' }}>{selectedArticle?.category?.toUpperCase()}</p>
+      <div style={{ width: '80px', height: '3px', background: '#a855f7', marginBottom: '20px' }} />
+      <p style={{ color: '#ffffff', fontSize: '52px', fontWeight: 'bold', margin: '0 0 20px', lineHeight: 1.2 }}>{selectedArticle?.title?.slice(0, 60)}</p>
+      <p style={{ color: '#9ca3af', fontSize: '26px', margin: 0 }}>{selectedArticle?.excerpt?.slice(0, 100)}</p>
+    </div>
+    <div style={{ position: 'absolute', bottom: '40px', left: '60px', display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+      <span style={{ color: '#FF2020', fontSize: '38px', fontWeight: 'bold' }}>NICE</span>
+      <span style={{ color: '#00CFFF', fontSize: '38px', fontWeight: 'bold' }}>X</span>
+      <span style={{ color: '#ffffff', fontSize: '38px', fontWeight: 'bold' }}>PLAY</span>
+      <span style={{ color: '#FFB800', fontSize: '22px', fontWeight: 'bold', marginLeft: '8px' }}>EXTREME</span>
+    </div>
+    <div style={{ position: 'absolute', bottom: '44px', right: '60px' }}>
+      <span style={{ color: '#3A4568', fontSize: '24px' }}>nicexplay.lat</span>
+    </div>
+  </div>
+</div>
+
+{/* Vista previa visible */}
+{imagenUrl ? (
+  <img
+    src={imagenUrl}
+    alt="Preview Instagram"
+    style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151' }}
   />
 ) : (
   <div style={{ width: '100%', aspectRatio: '1', borderRadius: '12px', border: '1px solid #374151', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -294,6 +334,7 @@ const [imagenUrl, setImagenUrl] = useState<string | null>(null)
   >
     ⬇️ Descargar PNG
   </button>
+</div>
 </div>
           </div>
         </div>
