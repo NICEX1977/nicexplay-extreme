@@ -38,7 +38,7 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('todos')
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  
 
   useEffect(() => {
     if (localStorage.getItem('nicexplay_admin') !== 'true') {
@@ -87,100 +87,40 @@ export default function AdminPanel() {
     aprobado: solicitudes.filter(s => s.estado === 'aprobado').length,
     rechazado: solicitudes.filter(s => s.estado === 'rechazado').length,
   }
+const [imagenUrl, setImagenUrl] = useState<string | null>(null)
+  const [generando, setGenerando] = useState(false)
 
   const generarImagen = async () => {
-    if (!selectedArticle || !canvasRef.current) return
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')!
-    canvas.width = 1080
-    canvas.height = 1080
-
-    // Fondo negro
-    ctx.fillStyle = '#0a0a0a'
-    ctx.fillRect(0, 0, 1080, 1080)
-
-    // Imagen de portada
-    if (selectedArticle.cover_url) {
-      try {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        await new Promise((res, rej) => {
-          img.onload = res
-          img.onerror = rej
-          img.src = selectedArticle.cover_url + '?_=' + Date.now()
+    if (!selectedArticle) return
+    setGenerando(true)
+    try {
+      const res = await fetch('/api/generar-imagen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedArticle.title,
+          excerpt: selectedArticle.excerpt,
+          category: selectedArticle.category,
+          cover_url: selectedArticle.cover_url
         })
-        ctx.globalAlpha = 0.4
-        ctx.drawImage(img, 0, 0, 1080, 1080)
-        ctx.globalAlpha = 1
-      } catch (e) {
-        console.error('Error cargando imagen:', e)
-      }
+      })
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      setImagenUrl(url)
+    } catch (e) {
+      console.error('Error:', e)
     }
-
-    // Gradiente inferior
-    const gradient = ctx.createLinearGradient(0, 400, 0, 1080)
-    gradient.addColorStop(0, 'rgba(10,10,10,0)')
-    gradient.addColorStop(0.4, 'rgba(10,10,10,0.9)')
-    gradient.addColorStop(1, 'rgba(10,10,10,1)')
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, 1080, 1080)
-
-    // Categoría
-    ctx.fillStyle = '#a855f7'
-    ctx.font = 'bold 28px Arial'
-    ctx.fillText(selectedArticle.category.toUpperCase(), 60, 700)
-
-    // Título
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 52px Arial'
-    const words = selectedArticle.title.split(' ')
-    let line = ''
-    let y = 760
-    for (const word of words) {
-      const test = line + word + ' '
-      if (ctx.measureText(test).width > 960 && line !== '') {
-        ctx.fillText(line.trim(), 60, y)
-        line = word + ' '
-        y += 65
-      } else {
-        line = test
-      }
-    }
-    ctx.fillText(line.trim(), 60, y)
-
-    // Excerpt
-    if (selectedArticle.excerpt) {
-      ctx.fillStyle = '#9ca3af'
-      ctx.font = '28px Arial'
-      const excerptShort = selectedArticle.excerpt.slice(0, 100) + '...'
-      ctx.fillText(excerptShort, 60, y + 60)
-    }
-
-    // Logo NICEXPLAY
-    ctx.font = 'bold 32px Arial'
-    ctx.fillStyle = '#FF2020'
-    ctx.fillText('NICE', 60, 1020)
-    ctx.fillStyle = '#00CFFF'
-    ctx.fillText('X', 60 + ctx.measureText('NICE').width, 1020)
-    ctx.fillStyle = '#ffffff'
-    ctx.fillText('PLAY', 60 + ctx.measureText('NICEX').width, 1020)
-    ctx.fillStyle = '#FFB800'
-    ctx.font = 'bold 18px Arial'
-    ctx.fillText('EXTREME', 60 + ctx.measureText('NICEXPLAY ').width + 10, 1020)
-
-    // URL
-    ctx.fillStyle = '#3A4568'
-    ctx.font = '24px Arial'
-    ctx.fillText('nicexplay.lat', 1080 - 60 - ctx.measureText('nicexplay.lat').width, 1020)
+    setGenerando(false)
   }
 
   const descargarImagen = () => {
-    if (!canvasRef.current) return
+    if (!imagenUrl) return
     const link = document.createElement('a')
-    link.download = `nicexplay-${selectedArticle?.id}.png`
-    link.href = canvasRef.current.toDataURL('image/png')
+    link.download = `nicexplay-instagram.png`
+    link.href = imagenUrl
     link.click()
   }
+  
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
@@ -294,26 +234,29 @@ export default function AdminPanel() {
 
           <div>
             <h2 className="text-xl font-bold mb-4">Vista previa</h2>
-            <canvas
-              ref={canvasRef}
-              style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151' }}
-            />
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={generarImagen}
-                disabled={!selectedArticle}
-                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
-              >
-                🎨 Generar imagen
-              </button>
-              <button
-                onClick={descargarImagen}
-                disabled={!selectedArticle}
-                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
-              >
-                ⬇️ Descargar PNG
-              </button>
-            </div>
+            {imagenUrl ? (
+  <img src={imagenUrl} alt="Preview Instagram" style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151' }} />
+) : (
+  <div style={{ width: '100%', aspectRatio: '1', borderRadius: '12px', border: '1px solid #374151', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <p className="text-gray-500">Selecciona un artículo y genera la imagen</p>
+  </div>
+)}
+<div className="flex gap-3 mt-4">
+  <button
+    onClick={generarImagen}
+    disabled={!selectedArticle || generando}
+    className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
+  >
+    {generando ? '⏳ Generando...' : '🎨 Generar imagen'}
+  </button>
+  <button
+    onClick={descargarImagen}
+    disabled={!imagenUrl}
+    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
+  >
+    ⬇️ Descargar PNG
+  </button>
+</div>
           </div>
         </div>
       )}
