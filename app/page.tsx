@@ -603,7 +603,11 @@ export default function Home() {
 <a href="/privacidad" style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '2px', color: '#3A4568', textDecoration: 'none' }}>Privacidad</a>
             
                       </div>
-          <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '1px', color: '#3A4568' }}>© 2026 NICEXPLAY EXTREME</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+  <a href="https://www.tiktok.com/@nicexplayofficial" target="_blank" rel="noopener noreferrer" style={{ color: '#3A4568', textDecoration: 'none', fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '1px' }}>TikTok</a>
+  <a href="https://www.instagram.com/nicexplayofficial" target="_blank" rel="noopener noreferrer" style={{ color: '#3A4568', textDecoration: 'none', fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '1px' }}>Instagram</a>
+  <div style={{ fontFamily: 'Orbitron, sans-serif', fontSize: '9px', letterSpacing: '1px', color: '#3A4568' }}>© 2026 NICEXPLAY EXTREME</div>
+</div>
         </div>
       </div>
 
