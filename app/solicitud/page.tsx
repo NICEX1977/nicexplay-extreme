@@ -30,6 +30,15 @@ export default function SolicitudPage() {
     if (err) {
       setError('Error al enviar. Intenta de nuevo.')
     } else {
+      try {
+        await fetch('/api/notificar-solicitud', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form)
+        })
+      } catch (e) {
+        console.error('Error enviando notificación:', e)
+      }
       setEnviado(true)
     }
     setEnviando(false)
