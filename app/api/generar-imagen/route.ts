@@ -1,104 +1,61 @@
- import { NextResponse } from 'next/server'
-import sharp from 'sharp'
+import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   const { title, excerpt, category, cover_url } = await req.json()
 
-  try {
-    const width = 1080
-    const height = 1080
+  const titleShort = title.length > 50 ? title.slice(0, 50) + '...' : title
+  const excerptShort = excerpt ? (excerpt.length > 80 ? excerpt.slice(0, 80) + '...' : excerpt) : ''
 
-    // Descargar imagen de portada
-    let coverBuffer: Buffer | null = null
-    if (cover_url) {
-      try {
-        const res = await fetch(cover_url)
-        const arrayBuffer = await res.arrayBuffer()
-        coverBuffer = Buffer.from(arrayBuffer)
-      } catch (e) {
-        console.error('Error descargando imagen:', e)
-      }
+  const svg = `
+<svg width="1080" height="1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0a0a" stop-opacity="0.3"/>
+      <stop offset="50%" stop-color="#0a0a0a" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0a0a0a" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo negro -->
+  <rect width="1080" height="1080" fill="#0a0a0a"/>
+
+  <!-- Imagen de portada -->
+  ${cover_url ? `<image href="${cover_url}" width="1080" height="1080" preserveAspectRatio="xMidYMid slice" opacity="0.45"/>` : ''}
+
+  <!-- Gradiente -->
+  <rect width="1080" height="1080" fill="url(#grad)"/>
+
+  <!-- Borde decorativo superior -->
+  <rect width="1080" height="6" fill="#a855f7"/>
+
+  <!-- Categoría -->
+  <text x="60" y="720" font-family="Arial" font-size="30" font-weight="bold" fill="#a855f7">${category.toUpperCase()}</text>
+
+  <!-- Línea decorativa -->
+  <rect x="60" y="735" width="80" height="3" fill="#a855f7"/>
+
+  <!-- Título línea 1 -->
+  <text x="60" y="800" font-family="Arial" font-size="52" font-weight="bold" fill="#ffffff">${titleShort.slice(0, 25)}</text>
+  <!-- Título línea 2 -->
+  <text x="60" y="865" font-family="Arial" font-size="52" font-weight="bold" fill="#ffffff">${titleShort.slice(25)}</text>
+
+  <!-- Excerpt -->
+  <text x="60" y="930" font-family="Arial" font-size="26" fill="#9ca3af">${excerptShort}</text>
+
+  <!-- Logo NICEXPLAY -->
+  <text x="60" y="1030" font-family="Arial" font-size="38" font-weight="bold" fill="#FF2020">NICE</text>
+  <text x="172" y="1030" font-family="Arial" font-size="38" font-weight="bold" fill="#00CFFF">X</text>
+  <text x="202" y="1030" font-family="Arial" font-size="38" font-weight="bold" fill="#ffffff">PLAY</text>
+  <text x="330" y="1030" font-family="Arial" font-size="22" font-weight="bold" fill="#FFB800">EXTREME</text>
+
+  <!-- URL -->
+  <text x="850" y="1030" font-family="Arial" font-size="24" fill="#3A4568">nicexplay.lat</text>
+</svg>`
+
+  return new NextResponse(svg, {
+    headers: {
+      'Content-Type': 'image/svg+xml',
+      'Content-Disposition': 'attachment; filename="nicexplay-instagram.svg"'
     }
-
-    // Construir capas
-    const layers: sharp.OverlayOptions[] = []
-
-    // Imagen de fondo con opacidad
-    if (coverBuffer) {
-      const coverResized = await sharp(coverBuffer)
-        .resize(width, height, { fit: 'cover' })
-        .modulate({ brightness: 0.4 })
-        .toBuffer()
-      layers.push({ input: coverResized, top: 0, left: 0 })
-    }
-
-    // Gradiente inferior SVG
-    const gradient = Buffer.from(`
-      <svg width="${width}" height="${height}">
-        <defs>
-          <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#0a0a0a" stop-opacity="0"/>
-            <stop offset="40%" stop-color="#0a0a0a" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#0a0a0a" stop-opacity="1"/>
-          </linearGradient>
-        </defs>
-        <rect width="${width}" height="${height}" fill="url(#g)"/>
-      </svg>
-    `)
-    layers.push({ input: gradient, top: 0, left: 0 })
-
-    // Texto SVG
-    const titleShort = title.length > 60 ? title.slice(0, 60) + '...' : title
-    const excerptShort = excerpt ? (excerpt.length > 100 ? excerpt.slice(0, 100) + '...' : excerpt) : ''
-
-    const textSvg = Buffer.from(`
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          .category { font: bold 32px Arial; fill: #a855f7; }
-          .title { font: bold 56px Arial; fill: #ffffff; }
-          .excerpt { font: 28px Arial; fill: #9ca3af; }
-          .logo-nice { font: bold 36px Arial; fill: #FF2020; }
-          .logo-x { font: bold 36px Arial; fill: #00CFFF; }
-          .logo-play { font: bold 36px Arial; fill: #ffffff; }
-          .logo-extreme { font: bold 20px Arial; fill: #FFB800; }
-          .url { font: 24px Arial; fill: #3A4568; }
-        </style>
-        <text x="60" y="700" class="category">${category.toUpperCase()}</text>
-        <foreignObject x="60" y="720" width="960" height="200">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="font: bold 56px Arial; color: white; word-wrap: break-word; line-height: 1.2;">
-            ${titleShort}
-          </div>
-        </foreignObject>
-        <text x="60" y="940" class="excerpt">${excerptShort}</text>
-        <text x="60" y="1020" class="logo-nice">NICE</text>
-        <text x="168" y="1020" class="logo-x">X</text>
-        <text x="198" y="1020" class="logo-play">PLAY</text>
-        <text x="320" y="1020" class="logo-extreme">EXTREME</text>
-        <text x="860" y="1020" class="url">nicexplay.lat</text>
-      </svg>
-    `)
-    layers.push({ input: textSvg, top: 0, left: 0 })
-
-    // Componer imagen final
-    const base = sharp({
-      create: {
-        width,
-        height,
-        channels: 4,
-        background: { r: 10, g: 10, b: 10, alpha: 1 }
-      }
-    })
-
-    const output = await base.composite(layers).png().toBuffer()
-
-    return new NextResponse(output, {
-      headers: {
-        'Content-Type': 'image/png',
-        'Content-Disposition': 'attachment; filename="nicexplay-instagram.png"'
-      }
-    })
-  } catch (error) {
-    console.error('Error generando imagen:', error)
-    return NextResponse.json({ error: 'Error generando imagen' }, { status: 500 })
-  }
+  })
 }

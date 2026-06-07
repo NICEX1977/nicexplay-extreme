@@ -116,7 +116,7 @@ const [imagenUrl, setImagenUrl] = useState<string | null>(null)
   const descargarImagen = () => {
     if (!imagenUrl) return
     const link = document.createElement('a')
-    link.download = `nicexplay-instagram.png`
+    link.download = `nicexplay-instagram.svg`
     link.href = imagenUrl
     link.click()
   }
