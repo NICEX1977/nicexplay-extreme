@@ -234,11 +234,17 @@ const [imagenUrl, setImagenUrl] = useState<string | null>(null)
 
           <div>
             <h2 className="text-xl font-bold mb-4">Vista previa</h2>
-            {imagenUrl ? (
-  <img src={imagenUrl} alt="Preview Instagram" style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151' }} />
+       {imagenUrl ? (
+  <img 
+    src={imagenUrl} 
+    alt="Preview Instagram" 
+    style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151', background: '#111' }} 
+    onError={(e) => console.error('Error cargando imagen:', e)}
+    onLoad={() => console.log('Imagen cargada OK')}
+  />
 ) : (
   <div style={{ width: '100%', aspectRatio: '1', borderRadius: '12px', border: '1px solid #374151', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <p className="text-gray-500">Selecciona un artículo y genera la imagen</p>
+    <p className="text-gray-500 text-center px-4">Selecciona un artículo y genera la imagen</p>
   </div>
 )}
 <div className="flex gap-3 mt-4">
