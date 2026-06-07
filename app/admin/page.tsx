@@ -56,7 +56,10 @@ const [generando, setGenerando] = useState(false)
       })
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      setImagenUrl(url)
+      const link = document.createElement('a')
+      link.download = 'nicexplay-instagram.svg'
+      link.href = url
+      link.click()
     } catch (e) {
       console.error('Error:', e)
     }
@@ -308,15 +311,47 @@ setImagenUrl(url)
 </div>
 
 {/* Vista previa visible */}
-{imagenUrl ? (
-  <img
-    src={imagenUrl}
-    alt="Preview Instagram"
-    style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151' }}
-  />
+{selectedArticle ? (
+  <div
+    style={{
+      width: '100%',
+      aspectRatio: '1',
+      borderRadius: '12px',
+      border: '1px solid #374151',
+      background: '#0a0a0a',
+      position: 'relative',
+      overflow: 'hidden',
+      fontFamily: 'Arial, sans-serif'
+    }}
+  >
+    {selectedArticle.cover_url && (
+      <img
+        src={selectedArticle.cover_url}
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45 }}
+        alt=""
+      />
+    )}
+    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to bottom, rgba(10,10,10,0) 0%, rgba(10,10,10,0.85) 50%, rgba(10,10,10,1) 100%)' }} />
+    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '6px', background: '#a855f7' }} />
+    <div style={{ position: 'absolute', bottom: '25%', left: '6%', right: '6%' }}>
+      <p style={{ color: '#a855f7', fontSize: '2.5vw', fontWeight: 'bold', margin: '0 0 8px' }}>{selectedArticle.category.toUpperCase()}</p>
+      <div style={{ width: '60px', height: '3px', background: '#a855f7', marginBottom: '12px' }} />
+      <p style={{ color: '#ffffff', fontSize: '3.5vw', fontWeight: 'bold', margin: '0 0 12px', lineHeight: 1.2 }}>{selectedArticle.title.slice(0, 60)}</p>
+      <p style={{ color: '#9ca3af', fontSize: '2vw', margin: 0 }}>{selectedArticle.excerpt?.slice(0, 100)}</p>
+    </div>
+    <div style={{ position: 'absolute', bottom: '4%', left: '6%', display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+      <span style={{ color: '#FF2020', fontSize: '3vw', fontWeight: 'bold' }}>NICE</span>
+      <span style={{ color: '#00CFFF', fontSize: '3vw', fontWeight: 'bold' }}>X</span>
+      <span style={{ color: '#ffffff', fontSize: '3vw', fontWeight: 'bold' }}>PLAY</span>
+      <span style={{ color: '#FFB800', fontSize: '1.8vw', fontWeight: 'bold', marginLeft: '6px' }}>EXTREME</span>
+    </div>
+    <div style={{ position: 'absolute', bottom: '4%', right: '6%' }}>
+      <span style={{ color: '#3A4568', fontSize: '1.8vw' }}>nicexplay.lat</span>
+    </div>
+  </div>
 ) : (
   <div style={{ width: '100%', aspectRatio: '1', borderRadius: '12px', border: '1px solid #374151', background: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <p className="text-gray-500 text-center px-4">Selecciona un artículo y genera la imagen</p>
+    <p className="text-gray-500 text-center px-4">Selecciona un artículo para ver el preview</p>
   </div>
 )}
 <div className="flex gap-3 mt-4">
@@ -325,14 +360,7 @@ setImagenUrl(url)
     disabled={!selectedArticle || generando}
     className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
   >
-    {generando ? '⏳ Generando...' : '🎨 Generar imagen'}
-  </button>
-  <button
-    onClick={descargarImagen}
-    disabled={!imagenUrl}
-    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
-  >
-    ⬇️ Descargar PNG
+    {generando ? '⏳ Generando...' : '⬇️ Descargar imagen'}
   </button>
 </div>
 </div>
