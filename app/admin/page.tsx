@@ -1,5 +1,5 @@
- 'use client'
-import { useEffect, useState } from 'react'
+'use client'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 
@@ -22,11 +22,23 @@ type Solicitud = {
   created_at: string
 }
 
+type Article = {
+  id: string
+  title: string
+  excerpt: string
+  cover_url: string
+  category: string
+}
+
 export default function AdminPanel() {
   const router = useRouter()
+  const [tab, setTab] = useState<'solicitudes' | 'instagram'>('solicitudes')
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
+  const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('todos')
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
     if (localStorage.getItem('nicexplay_admin') !== 'true') {
@@ -34,6 +46,7 @@ export default function AdminPanel() {
       return
     }
     cargarSolicitudes()
+    cargarArticles()
   }, [])
 
   const cargarSolicitudes = async () => {
@@ -43,6 +56,15 @@ export default function AdminPanel() {
       .order('created_at', { ascending: false })
     setSolicitudes(data || [])
     setLoading(false)
+  }
+
+  const cargarArticles = async () => {
+    const { data } = await supabase
+      .from('articles')
+      .select('id, title, excerpt, cover_url, category')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false })
+    setArticles(data || [])
   }
 
   const cambiarEstado = async (id: string, estado: string) => {
@@ -66,94 +88,233 @@ export default function AdminPanel() {
     rechazado: solicitudes.filter(s => s.estado === 'rechazado').length,
   }
 
+  const generarImagen = async () => {
+    if (!selectedArticle || !canvasRef.current) return
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')!
+    canvas.width = 1080
+    canvas.height = 1080
+
+    // Fondo negro
+    ctx.fillStyle = '#0a0a0a'
+    ctx.fillRect(0, 0, 1080, 1080)
+
+    // Imagen de portada
+    if (selectedArticle.cover_url) {
+      try {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        await new Promise((res, rej) => {
+          img.onload = res
+          img.onerror = rej
+          img.src = selectedArticle.cover_url
+        })
+        ctx.globalAlpha = 0.4
+        ctx.drawImage(img, 0, 0, 1080, 1080)
+        ctx.globalAlpha = 1
+      } catch (e) {
+        console.error('Error cargando imagen:', e)
+      }
+    }
+
+    // Gradiente inferior
+    const gradient = ctx.createLinearGradient(0, 400, 0, 1080)
+    gradient.addColorStop(0, 'rgba(10,10,10,0)')
+    gradient.addColorStop(0.4, 'rgba(10,10,10,0.9)')
+    gradient.addColorStop(1, 'rgba(10,10,10,1)')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 1080, 1080)
+
+    // Categoría
+    ctx.fillStyle = '#a855f7'
+    ctx.font = 'bold 28px Arial'
+    ctx.fillText(selectedArticle.category.toUpperCase(), 60, 700)
+
+    // Título
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 52px Arial'
+    const words = selectedArticle.title.split(' ')
+    let line = ''
+    let y = 760
+    for (const word of words) {
+      const test = line + word + ' '
+      if (ctx.measureText(test).width > 960 && line !== '') {
+        ctx.fillText(line.trim(), 60, y)
+        line = word + ' '
+        y += 65
+      } else {
+        line = test
+      }
+    }
+    ctx.fillText(line.trim(), 60, y)
+
+    // Excerpt
+    if (selectedArticle.excerpt) {
+      ctx.fillStyle = '#9ca3af'
+      ctx.font = '28px Arial'
+      const excerptShort = selectedArticle.excerpt.slice(0, 100) + '...'
+      ctx.fillText(excerptShort, 60, y + 60)
+    }
+
+    // Logo NICEXPLAY
+    ctx.font = 'bold 32px Arial'
+    ctx.fillStyle = '#FF2020'
+    ctx.fillText('NICE', 60, 1020)
+    ctx.fillStyle = '#00CFFF'
+    ctx.fillText('X', 60 + ctx.measureText('NICE').width, 1020)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText('PLAY', 60 + ctx.measureText('NICEX').width, 1020)
+    ctx.fillStyle = '#FFB800'
+    ctx.font = 'bold 18px Arial'
+    ctx.fillText('EXTREME', 60 + ctx.measureText('NICEXPLAY ').width + 10, 1020)
+
+    // URL
+    ctx.fillStyle = '#3A4568'
+    ctx.font = '24px Arial'
+    ctx.fillText('nicexplay.lat', 1080 - 60 - ctx.measureText('nicexplay.lat').width, 1020)
+  }
+
+  const descargarImagen = () => {
+    if (!canvasRef.current) return
+    const link = document.createElement('a')
+    link.download = `nicexplay-${selectedArticle?.id}.png`
+    link.href = canvasRef.current.toDataURL('image/png')
+    link.click()
+  }
+
   return (
     <div className="min-h-screen bg-black text-white p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-purple-400">🎮 NICEXPLAY Admin</h1>
-          <p className="text-gray-400">Solicitudes de creadores</p>
+          <p className="text-gray-400">Panel de administración</p>
         </div>
         <button onClick={salir} className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition">
           Cerrar sesión
         </button>
       </div>
 
-      {/* Contadores */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {[
-          { label: 'Total', key: 'todos', color: 'border-gray-600' },
-          { label: 'Pendientes', key: 'pendiente', color: 'border-yellow-500' },
-          { label: 'Aprobados', key: 'aprobado', color: 'border-green-500' },
-          { label: 'Rechazados', key: 'rechazado', color: 'border-red-500' },
-        ].map(({ label, key, color }) => (
-          <button
-            key={key}
-            onClick={() => setFiltro(key)}
-            className={`bg-gray-900 border ${color} ${filtro === key ? 'ring-2 ring-purple-500' : ''} rounded-xl p-4 text-center transition hover:opacity-80`}
-          >
-            <p className="text-2xl font-bold">{conteo[key as keyof typeof conteo]}</p>
-            <p className="text-gray-400 text-sm">{label}</p>
-          </button>
-        ))}
+      {/* Tabs */}
+      <div className="flex gap-3 mb-8">
+        <button
+          onClick={() => setTab('solicitudes')}
+          className={`px-6 py-2 rounded-lg font-bold text-sm transition ${tab === 'solicitudes' ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+        >
+          📋 Solicitudes
+        </button>
+        <button
+          onClick={() => setTab('instagram')}
+          className={`px-6 py-2 rounded-lg font-bold text-sm transition ${tab === 'instagram' ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+        >
+          📸 Generador Instagram
+        </button>
       </div>
 
-      {/* Lista */}
-      {loading ? (
-        <p className="text-center text-gray-400 mt-20">Cargando solicitudes...</p>
-      ) : filtradas.length === 0 ? (
-        <p className="text-center text-gray-400 mt-20">No hay solicitudes {filtro !== 'todos' ? filtro + 's' : ''}</p>
-      ) : (
-        <div className="space-y-4">
-          {filtradas.map(s => (
-            <div key={s.id} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-white">{s.nombre}</h2>
-                  <p className="text-gray-400 text-sm">{s.email} · {s.tipo} · {new Date(s.created_at).toLocaleDateString('es-PE')}</p>
+      {/* Tab Solicitudes */}
+      {tab === 'solicitudes' && (
+        <>
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Total', key: 'todos', color: 'border-gray-600' },
+              { label: 'Pendientes', key: 'pendiente', color: 'border-yellow-500' },
+              { label: 'Aprobados', key: 'aprobado', color: 'border-green-500' },
+              { label: 'Rechazados', key: 'rechazado', color: 'border-red-500' },
+            ].map(({ label, key, color }) => (
+              <button
+                key={key}
+                onClick={() => setFiltro(key)}
+                className={`bg-gray-900 border ${color} ${filtro === key ? 'ring-2 ring-purple-500' : ''} rounded-xl p-4 text-center transition hover:opacity-80`}
+              >
+                <p className="text-2xl font-bold">{conteo[key as keyof typeof conteo]}</p>
+                <p className="text-gray-400 text-sm">{label}</p>
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <p className="text-center text-gray-400 mt-20">Cargando solicitudes...</p>
+          ) : filtradas.length === 0 ? (
+            <p className="text-center text-gray-400 mt-20">No hay solicitudes {filtro !== 'todos' ? filtro + 's' : ''}</p>
+          ) : (
+            <div className="space-y-4">
+              {filtradas.map(s => (
+                <div key={s.id} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-white">{s.nombre}</h2>
+                      <p className="text-gray-400 text-sm">{s.email} · {s.tipo} · {new Date(s.created_at).toLocaleDateString('es-PE')}</p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      s.estado === 'pendiente' ? 'bg-yellow-500/20 text-yellow-400' :
+                      s.estado === 'aprobado' ? 'bg-green-500/20 text-green-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      {s.estado.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                    {s.juego_principal && <p><span className="text-gray-500">Juego:</span> {s.juego_principal}</p>}
+                    {s.plataforma && <p><span className="text-gray-500">Plataforma:</span> {s.plataforma}</p>}
+                    {s.seguidores && <p><span className="text-gray-500">Seguidores:</span> {s.seguidores}</p>}
+                    {s.url_canal && <p><span className="text-gray-500">Canal:</span> <a href={s.url_canal} target="_blank" className="text-purple-400 hover:underline">{s.url_canal}</a></p>}
+                  </div>
+                  {s.descripcion && <p className="text-gray-300 text-sm mb-4 bg-gray-800 p-3 rounded-lg">{s.descripcion}</p>}
+                  {s.estado === 'pendiente' && (
+                    <div className="flex gap-3">
+                      <button onClick={() => cambiarEstado(s.id, 'aprobado')} className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-sm font-bold transition">✅ Aprobar</button>
+                      <button onClick={() => cambiarEstado(s.id, 'rechazado')} className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg text-sm font-bold transition">❌ Rechazar</button>
+                    </div>
+                  )}
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  s.estado === 'pendiente' ? 'bg-yellow-500/20 text-yellow-400' :
-                  s.estado === 'aprobado' ? 'bg-green-500/20 text-green-400' :
-                  'bg-red-500/20 text-red-400'
-                }`}>
-                  {s.estado.toUpperCase()}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                {s.juego_principal && <p><span className="text-gray-500">Juego:</span> {s.juego_principal}</p>}
-                {s.plataforma && <p><span className="text-gray-500">Plataforma:</span> {s.plataforma}</p>}
-                {s.seguidores && <p><span className="text-gray-500">Seguidores:</span> {s.seguidores}</p>}
-                {s.url_canal && (
-                  <p><span className="text-gray-500">Canal:</span>{' '}
-                    <a href={s.url_canal} target="_blank" className="text-purple-400 hover:underline">{s.url_canal}</a>
-                  </p>
-                )}
-              </div>
-
-              {s.descripcion && (
-                <p className="text-gray-300 text-sm mb-4 bg-gray-800 p-3 rounded-lg">{s.descripcion}</p>
-              )}
-
-              {s.estado === 'pendiente' && (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => cambiarEstado(s.id, 'aprobado')}
-                    className="bg-green-600 hover:bg-green-700 px-5 py-2 rounded-lg text-sm font-bold transition"
-                  >
-                    ✅ Aprobar
-                  </button>
-                  <button
-                    onClick={() => cambiarEstado(s.id, 'rechazado')}
-                    className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg text-sm font-bold transition"
-                  >
-                    ❌ Rechazar
-                  </button>
-                </div>
-              )}
+              ))}
             </div>
-          ))}
+          )}
+        </>
+      )}
+
+      {/* Tab Instagram */}
+      {tab === 'instagram' && (
+        <div className="grid grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-xl font-bold mb-4">Selecciona un artículo</h2>
+            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+              {articles.map(a => (
+                <div
+                  key={a.id}
+                  onClick={() => setSelectedArticle(a)}
+                  className={`bg-gray-900 border rounded-xl p-4 cursor-pointer transition ${selectedArticle?.id === a.id ? 'border-purple-500 ring-2 ring-purple-500' : 'border-gray-800 hover:border-gray-600'}`}
+                >
+                  <p className="text-purple-400 text-xs font-bold mb-1">{a.category.toUpperCase()}</p>
+                  <p className="text-white font-bold text-sm">{a.title}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold mb-4">Vista previa</h2>
+            <canvas
+              ref={canvasRef}
+              style={{ width: '100%', borderRadius: '12px', border: '1px solid #374151' }}
+            />
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={generarImagen}
+                disabled={!selectedArticle}
+                className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
+              >
+                🎨 Generar imagen
+              </button>
+              <button
+                onClick={descargarImagen}
+                disabled={!selectedArticle}
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed px-5 py-3 rounded-lg font-bold transition"
+              >
+                ⬇️ Descargar PNG
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
